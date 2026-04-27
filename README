@@ -7,3 +7,21 @@ Consent
 Authorization code issuance
 Token exchange
 ID Token (JWT)
+
+
+----- : What /authorize must do : -----
+Your server must:
+Validate client
+Validate redirect_uri
+Ensure user is logged in
+Generate authorization code
+Redirect back to client
+
+workin of authorization :
+1. Chat App → /authorize
+2. OIDC Server validates client
+3. User already logged in
+4. SHOW consent page
+5. User clicks Allow
+6. Server generates auth code
+7. Redirect back to chat app
