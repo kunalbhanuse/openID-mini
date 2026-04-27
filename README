@@ -1,0 +1,9 @@
+🔥 Core OIDC flow
+!! ------------------------------ !!
+Client registration
+Authorization Code Flow
+Login (authentication)
+Consent
+Authorization code issuance
+Token exchange
+ID Token (JWT)
