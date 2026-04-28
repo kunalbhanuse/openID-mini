@@ -24,6 +24,8 @@ const authMiddleware = async (req, res, next) => {
     if (!user) {
       throw ApiError.unauthorized("User not Found");
     }
+
+    console.log("user:-", user);
     req.user = user;
     next();
   } catch (error) {
