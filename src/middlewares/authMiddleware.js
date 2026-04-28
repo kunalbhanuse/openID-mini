@@ -4,13 +4,16 @@ import User from "../models/user.model.js";
 
 const authMiddleware = async (req, res, next) => {
   try {
+    let token;
     const header = req.headers.authorization;
-    if (!header || !header.startsWith("Bearer ")) {
-      throw ApiError.unauthorized("Access Token Missing, Please Login First");
-    }
-    const token = header.split(" ")[1];
-    if (!token) {
-      throw ApiError.unauthorized("Access Token Missing");
+    if (header && header.startsWith("Bearer ")) {
+      token = header.split(" ")[1];
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
+    } else {
+      return res.redirect(
+        `/o/user/loginPage?redirect=${encodeURIComponent(req.originalUrl)}`,
+      );
     }
 
     const decode = jwt.verify(token, process.env.JWT_SECRET);

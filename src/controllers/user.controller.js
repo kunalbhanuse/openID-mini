@@ -29,21 +29,36 @@ const signUp = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    throw ApiError.badRequest("Email and password are required");
-  }
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw ApiError.notFound("User does not exits with this email");
-  }
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw ApiError.badRequest("Invalid email or password");
-  }
+  try {
+    const { email, password, redirect } = req.body;
+    if (!email || !password) {
+      throw ApiError.badRequest("Email and password are required");
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw ApiError.notFound("User does not exits with this email");
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw ApiError.badRequest("Invalid email or password");
+    }
 
-  const token = await generateToken(user);
+    const token = await generateToken(user);
 
-  return ApiResponse.ok(res, "Login Succefull ", { token });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+    });
+    if (redirect) {
+      return res.redirect(redirect);
+    }
+    return res.redirect("/");
+  } catch (error) {
+    return res.status(error.statusCode || 500).send(error.message);
+  }
 };
-export { signUp, login };
+const loginPage = (req, res) => {
+  const redirect = req.query.redirect || "";
+  res.render("loginPage", { redirect });
+};
+export { signUp, login, loginPage };

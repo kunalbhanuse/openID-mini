@@ -29,5 +29,11 @@ const signUp = async (req, res) => {
     });
   }
 };
+const registerClientPage = (req, res) => {
+  res.render("client-register", {
+    clientId: null,
+    clientSecret: null,
+  });
+};
 
-export { signUp };
+export { signUp, registerClientPage };
