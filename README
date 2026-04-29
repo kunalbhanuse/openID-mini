@@ -1,40 +1,153 @@
-🔥 Core OIDC flow
-!! ------------------------------ !!
-Client registration
-Authorization Code Flow
-Login (authentication)
-Consent
-Authorization code issuance
-Token exchange
-ID Token (JWT)
+👇
 
------ : What /authorize must do : -----
-Your server must:
-Validate client
-Validate redirect_uri
-Ensure user is logged in
-Generate authorization code
-Redirect back to client
+🔐 OAuth 2.0 + OpenID Connect (From Scratch)
 
-workin of authorization :
+A minimal implementation of OAuth 2.0 Authorization Code Flow with OpenID Connect, built from scratch to deeply understand how authentication and authorization systems work under the hood.
 
-1. Chat App → /authorize
-2. OIDC Server validates client
-3. User already logged in
-4. SHOW consent page
-5. User clicks Allow
-6. Server generates auth code
-7. Redirect back to chat app
+🚀 Overview
 
-👉 “Authorization Server (mini version)”
+This project is an attempt to move beyond using OAuth libraries and instead understand the full flow by building it manually.
 
-It includes:
+It covers:
 
-client registration (client_id, client_secret)
-/authorize endpoint
-login system (user authentication)
-consent screen
-authorization code generation
-(next) token exchange endpoint
+Client Registration
+User Authentication
+Authorization (Consent Flow)
+Authorization Code Generation
+Token Exchange (/token)
+Access Token Usage (/userinfo)
+Basic OpenID Connect (id_token)
+🧠 Motivation
 
-So yes — this is basically:
+OAuth 2.0 is widely used, but often treated as a black box.
+
+This project focuses on:
+
+Understanding how each component interacts rather than just using it.
+
+Building this system helped clarify:
+
+Why authorization codes exist
+Why token exchange is server-to-server
+How trust is established between client and server
+🏗️ Architecture
+
+The system includes:
+
+Authorization Server
+Handles login, consent, token issuance
+Resource Server
+Serves protected endpoints (/userinfo)
+Client (Test App)
+Simulates a third-party application
+🔁 Full Flow
+
+1. Client Registration
+   Client registers and receives:
+   client_id
+   client_secret
+2. User Authentication
+   User signs up / logs in
+   Session is established (JWT / cookie)
+3. Authorization Request
+   GET /authorize?client_id=...&redirect_uri=...&scope=...&state=...
+   Server validates client
+   Checks user session
+   Redirects to login if needed
+4. Consent Screen
+
+User is asked to approve or deny access.
+
+5. Authorization Code
+
+If approved:
+
+Server generates a short-lived code
+Stores:
+userId
+clientId
+scope
+expiry
+
+Redirect:
+
+redirect_uri?code=abc123&state=xyz 6. Token Exchange (Server-to-Server)
+POST /token
+
+Body:
+
+{
+"client_id": "...",
+"client_secret": "...",
+"code": "...",
+"redirect_uri": "..."
+} 7. Validation
+
+Server verifies:
+
+Client credentials
+Authorization code
+Redirect URI match
+Expiry
+
+Then:
+
+Deletes code (one-time use) 8. Token Issuance
+
+Response:
+
+{
+"access_token": "...",
+"id_token": "...",
+"token_type": "Bearer",
+"expires_in": 3600
+} 9. Accessing Protected Resources
+GET /userinfo
+Authorization: Bearer <access_token>
+
+Returns:
+
+{
+"userId": "...",
+"email": "..."
+}
+🔑 Key Concepts Learned
+OAuth ≠ Login
+Separation of:
+Authentication (who the user is)
+Authorization (what the client can access)
+/authorize vs /token distinction:
+/authorize → user interaction
+/token → server-to-server
+Authorization codes are:
+short-lived
+one-time use
+⚠️ Limitations (Intentional)
+
+This is a learning-focused implementation, so it does not include:
+
+PKCE (Proof Key for Code Exchange)
+Refresh tokens
+Advanced security hardening
+Production-grade key management
+🛠️ Tech Stack
+Node.js
+Express
+MongoDB
+JWT
+bcrypt
+📌 Future Improvements
+Add PKCE support
+Implement refresh tokens
+Separate resource server
+Improve token validation (public/private keys)
+📖 Blog
+
+A detailed explanation of the flow is available here:
+👉 https://openidconnect.hashnode.dev/oauth-2-openid-connect-from-scratch
+
+🤝 Final Thoughts
+
+Building even a minimal version of OAuth 2.0 + OpenID Connect provides a much deeper understanding than using it as a black box.
+
+This project is not production-ready—but it is a strong foundation for understanding modern authentication systems.
