@@ -176,11 +176,25 @@ OAuth authorization URL tester
 OAuth callback page
 Session dashboard
 
+OpenID Connect discovery endpoints:
+
+GET /.well-known/openid-configuration
+GET /.well-known/jwks.json
+
+The access token is still signed with the local JWT secret for API protection.
+The ID token is signed with RS256 and can be verified through the JWKS public key.
+If OIDC_CERT is configured, the JWKS also exposes the certificate chain through x5c.
+
+Generate a local certificate/key pair:
+
+openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+openssl req -new -x509 -key private.pem -out cert.pem -days 365 -subj "/CN=OpenID Mini"
+openssl x509 -in cert.pem -pubkey -noout > public.pem
+
 📌 Future Improvements
 Add PKCE support
 Implement refresh tokens
 Separate resource server
-Improve token validation (public/private keys)
 📖 Blog
 
 A detailed explanation of the flow is available here:

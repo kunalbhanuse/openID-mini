@@ -186,7 +186,7 @@ function Dashboard({ user, navigate }) {
 
       <section className="metric-grid">
         <MetricCard label="Protocol" value="OAuth 2.0" detail="Authorization Code Flow" />
-        <MetricCard label="Identity" value="OIDC" detail="ID token and userinfo" />
+        <MetricCard label="Identity" value="OIDC" detail="Discovery, JWKS and userinfo" />
         <MetricCard label="Runtime" value="MERN" detail="Express API + React UI" />
       </section>
 
@@ -210,7 +210,7 @@ function Dashboard({ user, navigate }) {
             <span>Client application registration</span>
             <span>Login with HTTP-only cookie session</span>
             <span>Consent approval and authorization code issue</span>
-            <span>Access token, ID token and userinfo endpoint</span>
+            <span>RS256 ID token, JWKS and userinfo endpoint</span>
           </div>
         </Panel>
       </section>

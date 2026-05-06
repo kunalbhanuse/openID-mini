@@ -4,6 +4,17 @@ import crypto from "crypto";
 import AuthCode from "../models/auth.model.js";
 import bcrypt from "bcrypt";
 import { generateIdToken, generateToken } from "../utils/jwt.utils.js";
+import { getOpenIdConfiguration, getPublicJwk } from "../utils/oidc.utils.js";
+
+const openIdConfiguration = (req, res) => {
+  return res.json(getOpenIdConfiguration());
+};
+
+const jwks = (req, res) => {
+  return res.json({
+    keys: [getPublicJwk()],
+  });
+};
 
 const authorize = async (req, res) => {
   try {
@@ -149,4 +160,4 @@ const userInfo = (req, res) => {
   });
 };
 
-export { authorize, consent, token, userInfo };
+export { authorize, consent, jwks, openIdConfiguration, token, userInfo };
