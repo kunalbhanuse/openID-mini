@@ -7,4 +7,20 @@ const generateToken = (payload) => {
   return token;
 };
 
-export { generateToken };
+const generateIdToken = ({ user, clientId }) => {
+  return jwt.sign(
+    {
+      iss: process.env.ISSUER || "http://localhost:8000",
+      sub: user._id.toString(),
+      aud: clientId,
+      email: user.email,
+      name: user.name,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.ID_TOKEN_EXPIRY || "1h",
+    },
+  );
+};
+
+export { generateToken, generateIdToken };

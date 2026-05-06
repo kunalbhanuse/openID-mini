@@ -19,7 +19,9 @@ const signUp = async (req, res) => {
       email,
       password,
     });
-    return ApiResponse.created(res, "User register Succefully ", user);
+    const safeUser = user.toObject();
+    delete safeUser.password;
+    return ApiResponse.created(res, "User registered successfully", safeUser);
   } catch (error) {
     res.status(error.statusCode || 500).json({
       success: false,
@@ -47,18 +49,31 @@ const login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
     });
     if (redirect) {
       return res.redirect(redirect);
     }
-    return res.redirect("/");
+    return ApiResponse.ok(res, "Login successful", {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
   } catch (error) {
     return res.status(error.statusCode || 500).send(error.message);
   }
 };
-const loginPage = (req, res) => {
-  const redirect = req.query.redirect || "";
-  res.render("loginPage", { redirect });
+const me = (req, res) => {
+  return ApiResponse.ok(res, "Current user", req.user);
 };
-export { signUp, login, loginPage };
+
+const logout = (req, res) => {
+  res.clearCookie("token");
+  return ApiResponse.ok(res, "Logged out successfully");
+};
+
+export { signUp, login, me, logout };

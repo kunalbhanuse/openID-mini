@@ -2,7 +2,8 @@ import Client from "../models/client.model.js";
 import ApiError from "../utils/ApiError.js";
 import crypto from "crypto";
 import AuthCode from "../models/auth.model.js";
-import { generateToken } from "../utils/jwt.utils.js";
+import bcrypt from "bcrypt";
+import { generateIdToken, generateToken } from "../utils/jwt.utils.js";
 
 const authorize = async (req, res) => {
   try {
@@ -22,14 +23,16 @@ const authorize = async (req, res) => {
     const user = req.user;
 
     const scopes = scope?.split(" ") || [];
-    return res.render("consent", {
-      userName: user.name,
-      clientName: existingClient.name,
-      scopes,
-      client_id,
-      redirect_uri,
-      state,
-    });
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const consentUrl = new URL("/consent", frontendUrl);
+    consentUrl.searchParams.set("client_id", client_id);
+    consentUrl.searchParams.set("redirect_uri", redirect_uri);
+    consentUrl.searchParams.set("client_name", existingClient.name);
+    consentUrl.searchParams.set("user_name", user.name);
+    consentUrl.searchParams.set("scope", scopes.join(" "));
+    if (state) consentUrl.searchParams.set("state", state);
+
+    return res.redirect(consentUrl.toString());
   } catch (error) {
     res.status(error.statusCode || 500).json({
       success: false,
@@ -43,8 +46,21 @@ const consent = async (req, res) => {
     const { decision, client_id, redirect_uri, state, scope } = req.body;
     const user = req.user;
 
+    const existingClient = await Client.findOne({ clientId: client_id });
+    if (!existingClient) {
+      throw ApiError.unauthorized("Invalid client");
+    }
+
+    if (!existingClient.redirectUris.includes(redirect_uri)) {
+      throw ApiError.unauthorized("Invalid redirect URI");
+    }
+
+    const url = new URL(redirect_uri);
+    if (state) url.searchParams.append("state", state);
+
     if (decision !== "allow") {
-      return res.redirect(redirect_uri);
+      url.searchParams.append("error", "access_denied");
+      return res.redirect(url.toString());
     }
     const code = crypto.randomBytes(16).toString("hex");
 
@@ -56,11 +72,8 @@ const consent = async (req, res) => {
       redirectUri: redirect_uri,
       expiresAt: Date.now() + 5 * 60 * 1000,
     });
-    console.log(authCode);
 
-    const url = new URL(redirect_uri);
     url.searchParams.append("code", code);
-    url.searchParams.append("state", state);
 
     return res.redirect(url.toString());
   } catch (error) {
@@ -72,42 +85,68 @@ const consent = async (req, res) => {
 };
 
 const token = async (req, res) => {
-  const { code, client_id, client_secret, redirect_uri } = req.body;
+  try {
+    const { code, client_id, client_secret, redirect_uri } = req.body;
 
-  // 1. find code
-  const validCode = await AuthCode.findOne({ code }).populate("userId");
+    if (!code || !client_id || !client_secret || !redirect_uri) {
+      throw ApiError.badRequest("code, client_id, client_secret and redirect_uri are required");
+    }
 
-  if (!validCode) {
-    throw ApiError.badRequest("Invalid code");
+    const validCode = await AuthCode.findOne({ code }).populate("userId");
+
+    if (!validCode) {
+      throw ApiError.badRequest("Invalid code");
+    }
+
+    if (validCode.expiresAt < new Date()) {
+      await AuthCode.deleteOne({ code });
+      throw ApiError.badRequest("Authorization code expired");
+    }
+
+    if (validCode.clientId !== client_id) {
+      throw ApiError.unauthorized("Client mismatch");
+    }
+
+    if (validCode.redirectUri !== redirect_uri) {
+      throw ApiError.unauthorized("Redirect URI mismatch");
+    }
+
+    const client = await Client.findOne({ clientId: client_id });
+    if (!client) {
+      throw ApiError.unauthorized("Invalid client");
+    }
+
+    const secretMatches = await bcrypt.compare(client_secret, client.clientSecret);
+    if (!secretMatches) {
+      throw ApiError.unauthorized("Invalid client secret");
+    }
+
+    const accessToken = await generateToken(validCode.userId);
+    const idToken = generateIdToken({ user: validCode.userId, clientId: client_id });
+
+    await AuthCode.deleteOne({ code });
+
+    return res.json({
+      access_token: accessToken,
+      id_token: idToken,
+      token_type: "Bearer",
+      expires_in: 3600,
+      scope: validCode.scope,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message,
+    });
   }
+};
 
-  // 2. check expiry
-
-  // 3. validate client + redirect
-  if (validCode.clientId !== client_id) {
-    throw ApiError.unauthorized("Client mismatch");
-  }
-
-  if (validCode.redirectUri !== redirect_uri) {
-    throw ApiError.unauthorized("Redirect URI mismatch");
-  }
-
-  // 4. (optional but important) validate client_secret
-  // const client = await Client.findOne({ clientId: client_id })
-  // compare secret here
-
-  // 5. generate access token
-  const accessToken = await generateToken(validCode.userId);
-
-  // 6. delete code (single use)
-  await AuthCode.deleteOne({ code });
-
-  // 7. respond
+const userInfo = (req, res) => {
   return res.json({
-    access_token: accessToken,
-    token_type: "Bearer",
-    expires_in: 3600,
+    sub: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
   });
 };
 
-export { authorize, consent, token };
+export { authorize, consent, token, userInfo };

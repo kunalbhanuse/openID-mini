@@ -136,6 +136,46 @@ Express
 MongoDB
 JWT
 bcrypt
+React
+Vite
+
+🖥️ Separate React Frontend
+
+This repo now includes a separate Vite React app inside:
+
+frontend/
+
+Backend auth server:
+
+npm install
+npm run dev
+
+Frontend app:
+
+cd frontend
+npm install
+npm run dev
+
+Default URLs:
+
+Backend: http://localhost:8000
+Frontend: http://localhost:5173
+
+Make sure backend .env includes:
+
+FRONTEND_URL=http://localhost:5173
+ISSUER=http://localhost:8000
+
+The React UI includes:
+
+User signup
+User login/logout
+OAuth client registration
+Consent screen
+OAuth authorization URL tester
+OAuth callback page
+Session dashboard
+
 📌 Future Improvements
 Add PKCE support
 Implement refresh tokens

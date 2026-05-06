@@ -4,7 +4,15 @@ import Client from "../models/client.model.js";
 import crypto from "crypto";
 const signUp = async (req, res) => {
   try {
-    const { name, redirectUris } = req.body;
+    const { name } = req.body;
+    const redirectUris = Array.isArray(req.body.redirectUris)
+      ? req.body.redirectUris
+      : [req.body.redirectUris].filter(Boolean);
+
+    if (!name || redirectUris.length === 0) {
+      throw ApiError.badRequest("Client name and at least one redirect URI are required");
+    }
+
     const existingUser = await Client.findOne({ name });
     if (existingUser) {
       throw ApiError.badRequest("Client already exits");
@@ -12,7 +20,7 @@ const signUp = async (req, res) => {
     const clientId = crypto.randomBytes(16).toString("hex");
     const clientSecret = crypto.randomBytes(32).toString("hex");
 
-    const client = await Client.create({
+    await Client.create({
       name,
       clientId,
       clientSecret,
@@ -29,11 +37,4 @@ const signUp = async (req, res) => {
     });
   }
 };
-const registerClientPage = (req, res) => {
-  res.render("client-register", {
-    clientId: null,
-    clientSecret: null,
-  });
-};
-
-export { signUp, registerClientPage };
+export { signUp };

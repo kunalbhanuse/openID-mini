@@ -5,6 +5,7 @@ const authRoute = Router();
 
 authRoute.get("/authorize", authMiddleware, controller.authorize);
 authRoute.post("/consent", authMiddleware, controller.consent);
-authRoute.post("/token", authMiddleware, controller.token);
+authRoute.post("/token", controller.token);
+authRoute.get("/userinfo", authMiddleware, controller.userInfo);
 
 export default authRoute;
