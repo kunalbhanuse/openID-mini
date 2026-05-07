@@ -311,9 +311,6 @@ Current limitations include:
 I also write about the concepts behind the project and related JavaScript topics:
 
 - [OAuth 2.0 + OpenID Connect From Scratch](https://openidconnect.hashnode.dev/oauth-2-openid-connect-from-scratch)
-- [Under the Hood of React Virtual DOM Reconciliation](https://react-virtual-dom-under-hood.hashnode.dev/under-the-hood-of-react-virtual-dom-reconciliation)
-- [Object-Oriented Programming in JavaScript](https://oopsinjavajsript.hashnode.dev/object-oriented-programming-in-javascript)
-- [Control Flow in JavaScript: if, else, and switch](https://magicthis.hashnode.dev/control-flow-in-javascript-if-else-and-switch-explained)
 
 ## Why This Project Matters
 
