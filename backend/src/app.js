@@ -17,9 +17,6 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
-console.log(API_BASE);
-
 app.get("/profile", authMiddleware, (req, res) => {
   res.json({
     message: "Protected route accessed",

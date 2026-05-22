@@ -1,5 +1,7 @@
 import { API_BASE } from "../config/api";
 
+console.log("Api: -", API_BASE);
+
 export async function api(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
