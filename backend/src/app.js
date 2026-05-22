@@ -9,34 +9,13 @@ import cors from "cors";
 
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN,
+    origin: process.env.FRONTEND_UR,
     credentials: true,
   }),
 );
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", frontendUrl);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-  );
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  );
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
-  return next();
-});
 
 app.get("/profile", authMiddleware, (req, res) => {
   res.json({
