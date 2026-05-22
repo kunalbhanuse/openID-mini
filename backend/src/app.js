@@ -9,7 +9,7 @@ import cors from "cors";
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: "https://open-id-mini.vercel.app",
     credentials: true,
   }),
 );
