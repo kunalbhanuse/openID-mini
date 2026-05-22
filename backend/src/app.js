@@ -5,7 +5,14 @@ import clientRoute from "./route/client.route.js";
 import authRoute from "./route/auth.route.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN,
+    credentials: true,
+  }),
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,7 +26,10 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  );
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
